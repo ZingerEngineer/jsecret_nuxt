@@ -12,7 +12,6 @@ export default defineEventHandler(async (event: H3Event) => {
   try {
     const { email, password, name } = await readBody(event)
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email })
     if (existingUser) {
       throw createError({
@@ -43,6 +42,7 @@ export default defineEventHandler(async (event: H3Event) => {
     })
 
     return {
+      status: 200,
       user: {
         id: user._id,
         email: user.email,

@@ -7,6 +7,7 @@ const ZUser = z.object({
   avatar: z.string().optional(),
   provider: z.enum(['local', 'google', 'github']).default('local'),
   providerId: z.string().optional(),
+  role: z.enum(['user', 'admin']).default('user'),
   resetPasswordToken: z.string().optional(),
   resetPasswordExpires: z.date().optional()
 })

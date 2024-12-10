@@ -1,11 +1,11 @@
 import { createError, defineEventHandler, H3Event } from 'h3'
 import { EnvVariable } from '~/server/models/EnvVariable'
 import { Team } from '~/server/models/Team'
-import { getServerSession } from '~/server/utils/auth'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const session = await getServerSession(event)
+    console.log('session', session)
     if (!session) {
       throw createError({
         statusCode: 401,

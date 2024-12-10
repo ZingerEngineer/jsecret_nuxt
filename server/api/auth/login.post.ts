@@ -11,7 +11,6 @@ import jwt from 'jsonwebtoken'
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const { email, password } = await readBody(event)
-
     const user = await User.findOne({ email })
     if (!user) {
       throw createError({
@@ -41,6 +40,7 @@ export default defineEventHandler(async (event: H3Event) => {
     })
 
     return {
+      status: 200,
       user: {
         id: user._id,
         email: user.email,

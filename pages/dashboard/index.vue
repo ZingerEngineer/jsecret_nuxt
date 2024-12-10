@@ -9,66 +9,169 @@
           class="space-y-4"
         >
           <div class="flex gap-4">
-            <Input
-              id="keyName"
-              v-model="newVariable.key"
-              label="Key name"
-              type="text"
-              required
-              class="flex-1"
-            />
-            <Input
-              id="keyValue"
-              v-model="newVariable.value"
-              label="Key value"
-              type="text"
-              required
-              class="flex-1"
-            />
+            <FormField
+              name="key"
+              v-slot="{ componentField }"
+            >
+              <FormItem v-auto-animate>
+                <FormLabel>Key name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="foo"
+                    v-bind="componentField"
+                    type="text"
+                  />
+                </FormControl>
+                <FormDescription>Enter key name.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+            <FormField
+              name="value"
+              v-slot="{ componentField }"
+            >
+              <FormItem v-auto-animate>
+                <FormLabel>Key value</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="bar"
+                    v-bind="componentField"
+                    type="text"
+                  />
+                </FormControl>
+                <FormDescription>Enter key value.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            </FormField>
           </div>
 
           <div class="space-y-4">
-            <select
-              v-model="newVariable.projectId"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            <FormField
+              name="project"
+              v-slot="{ componentField }"
             >
-              <option value="">Select Project</option>
-              <option
-                v-for="project in projects"
-                :key="String(project._id)"
-                :value="String(project._id)"
-              >
-                {{ project.name }}
-              </option>
-            </select>
+              <FormItem v-auto-animate>
+                <FormLabel>Project</FormLabel>
+                <FormControl>
+                  <Select v-bind="componentField">
+                    <SelectTrigger
+                      class="disabled:cursor-default"
+                      :disabled="projects.length === 0"
+                    >
+                      <SelectValue
+                        :placeholder="
+                          projects.length > 0
+                            ? 'Select a project'
+                            : 'No projects available'
+                        "
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup
+                        v-for="project in projects"
+                        :key="String(project._id)"
+                      >
+                        <SelectLabel>{{ project.name }}</SelectLabel>
+                        <SelectItem :value="String(project._id)">
+                          {{ project.name }}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormDescription
+                  >Add the env variable to a specific project.</FormDescription
+                >
+                <FormMessage />
+              </FormItem>
+            </FormField>
 
-            <select
-              v-model="newVariable.teamId"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            <FormField
+              name="team"
+              v-slot="{ componentField }"
             >
-              <option value="">Select Team</option>
-              <option
-                v-for="team in teams"
-                :key="String(team._id)"
-                :value="String(team._id)"
-              >
-                {{ team.name }}
-              </option>
-            </select>
+              <FormItem v-auto-animate>
+                <FormLabel>Team</FormLabel>
+                <FormControl>
+                  <Select v-bind="componentField">
+                    <SelectTrigger
+                      class="disabled:cursor-default"
+                      :disabled="teams.length === 0"
+                    >
+                      <SelectValue
+                        :placeholder="
+                          teams.length > 0
+                            ? 'Select a team'
+                            : 'No teams available'
+                        "
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup
+                        v-for="team in teams"
+                        :key="String(team._id)"
+                      >
+                        <SelectLabel>{{ team.name }}</SelectLabel>
+                        <SelectItem :value="String(team._id)">
+                          {{ team.name }}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormDescription
+                  >Add the env variable to a specific team.</FormDescription
+                >
+                <FormMessage />
+              </FormItem>
+            </FormField>
           </div>
 
           <Button
             type="submit"
             fullWidth
+            :onclick="
+              () => {
+                console.log(values)
+              }
+            "
             >Create Variable</Button
           >
         </form>
       </div>
 
       <!-- Recent Variables Section -->
-      <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Recent Variables</h2>
-        <div class="space-y-4">
+      <div
+        :class="[
+          'p-6 rounded-lg shadow-md',
+          recentVariables.length === 0
+            ? 'bg-gray-100 dark:bg-gray-700 border-2 border-dashed'
+            : 'bg-white dark:bg-gray-800'
+        ]"
+      >
+        <div class="flex flex-row items-center gap-2">
+          <BookLockIcon class="w-6 h-6 inline-block" />
+          <h2
+            :class="
+              recentVariables.length > 0
+                ? 'text-xl font-semibold text-gray-900 dark:text-gray-100'
+                : 'text-xl font-semibold text-gray-500 dark:text-gray-400'
+            "
+          >
+            Recent Variables
+          </h2>
+        </div>
+        <div
+          v-if="recentVariables.length === 0"
+          class="flex flex-col h-full w-full items-center justify-center text-gray-500 dark:text-gray-400"
+        >
+          <WindIcon class="w-20 h-20 inline-block" />
+          <p>No recent variables found.</p>
+        </div>
+        <div
+          v-else
+          class="space-y-4"
+        >
           <div
             v-for="variable in recentVariables"
             :key="String(variable._id)"
@@ -100,9 +203,37 @@
     </div>
 
     <!-- Teams Section -->
-    <div class="mt-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4">Your Teams</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      :class="[
+        'p-6 rounded-lg shadow-md mt-6',
+        teams.length === 0
+          ? 'bg-gray-100 dark:bg-gray-700 border-2 border-dashed'
+          : 'bg-white dark:bg-gray-800'
+      ]"
+    >
+      <div class="flex flex-row items-center gap-2">
+        <UsersRoundIcon class="w-6 h-6 inline-block" />
+        <h2
+          :class="
+            teams.length > 0
+              ? 'text-xl font-semibold text-gray-900 dark:text-gray-100'
+              : 'text-xl font-semibold text-gray-500 dark:text-gray-400'
+          "
+        >
+          Your Teams
+        </h2>
+      </div>
+      <div
+        v-if="teams.length === 0"
+        class="flex flex-col justify-center items-center w-full h-full text-gray-500 dark:text-gray-400"
+      >
+        <UserRoundXIcon class="w-20 h-20 inline-block" />
+        <p>You are not a member of any teams.</p>
+      </div>
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div
           v-for="team in teams"
           :key="String(team._id)"
@@ -121,22 +252,38 @@
 </template>
 
 <script setup lang="ts">
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
+import {
+  BookLockIcon,
+  WindIcon,
+  UsersRoundIcon,
+  UserRoundXIcon
+} from 'lucide-vue-next'
 import { ZEnvVariable } from '~/schemas/ZEnvVariable'
 import type { IEnvVariable } from '~/server/models/EnvVariable'
 import type { IProject } from '~/server/models/Project'
 import type { ITeam } from '~/server/models/Team'
-
-const newVariable = reactive({
-  key: '',
-  value: '',
-  projectId: '',
-  teamId: ''
-})
-
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import { useToast } from '~/components/ui/toast'
+import { useEnvVariablesStore } from '#imports'
+const { toast } = useToast()
+const { createVariable } = useEnvVariablesStore()
 const teams = ref<ITeam[]>([])
 const projects = ref<IProject[]>([])
 const recentVariables = ref<IEnvVariable[]>([])
-
+const formSchema = toTypedSchema(ZEnvVariable)
+const { handleSubmit, resetForm, values } = useForm({
+  validationSchema: formSchema
+})
 onMounted(async () => {
   try {
     const { data: teamsData, error: teamsError } = await useFetch<ITeam[]>(
@@ -157,28 +304,34 @@ onMounted(async () => {
   }
 })
 
-const createEnvVariable = async () => {
-  try {
-    const response = await useFetch<IEnvVariable>('/api/env-variables', {
-      method: 'POST',
-      body: newVariable
-    })
-    const { data: newVariableData, error: newVariableError } = response
-    if (
-      ZEnvVariable.safeParse(newVariableData.value).success &&
-      newVariableData.value
-    ) {
-      recentVariables.value.unshift(newVariableData.value)
-    }
-    // Reset form
-    newVariable.key = ''
-    newVariable.value = ''
-    newVariable.projectId = ''
-    newVariable.teamId = ''
-  } catch (error) {
-    console.error('Failed to create environment variable:', error)
+const createEnvVariable = handleSubmit(async (values) => {
+  const validNewEnvVariable = {
+    key: values.key,
+    value: values.value,
+    teamId: values.team,
+    projectId: values.project,
+    environment: 'development'
   }
-}
+  console.log(validNewEnvVariable)
+  try {
+    const response = await createVariable(validNewEnvVariable)
+
+    const { status, variable } = response
+    if (status === 200) {
+      recentVariables.value.unshift(variable as IEnvVariable)
+      resetForm()
+      toast({
+        title: 'New env variable created.',
+        type: 'background'
+      })
+    }
+  } catch (error) {
+    toast({
+      title: 'Creation failed.',
+      type: 'background'
+    })
+  }
+})
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -187,5 +340,10 @@ const formatDate = (date: string) => {
     day: 'numeric'
   })
 }
+definePageMeta({
+  title: 'Dashboard',
+  description: 'Dashboard page for managing environment variables and teams.',
+  middleware: 'auth'
+})
 </script>
 

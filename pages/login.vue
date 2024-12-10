@@ -8,57 +8,49 @@
           Sign in to your account
         </h2>
       </div>
+      <NuxtLoadingIndicator
+        :height="10"
+        v-if="loading"
+      />
       <form
-        class="mt-8 space-y-6"
-        @submit.prevent="handleSubmit"
+        v-if="!loading"
+        @submit.prevent="handleLogin"
+        class="flex flex-col gap-2"
       >
-        <div class="rounded-md shadow-sm flex flex-col">
-          <Input
-            class="mb-4 p-2 pl-4 rounded-md bg-cyan-500/10 border-2 border-cyan-500 text-white"
-            placeholder="john.doe@example.com"
-            id="email"
-            v-model="form.email"
-            type="email"
-            label="Email address"
-            autocomplete="email"
-            required
-            :error="errors.email"
-          />
-
-          <Input
-            class="mb-4 p-2 pl-4 rounded-md bg-cyan-500/10 border-2 border-cyan-500 text-white"
-            placeholder="●●●●●●"
-            id="password"
-            v-model="form.password"
-            type="password"
-            label="Password"
-            autocomplete="current-password"
-            required
-            :error="errors.password"
-          />
-        </div>
-
+        <FormField
+          name="email"
+          v-slot="{ field, errors }"
+        >
+          <FormItem v-auto-animate>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="field"
+                type="email"
+              />
+            </FormControl>
+            <FormDescription>Enter your email address</FormDescription>
+            <FormMessage v-if="errors.length">{{ errors[0] }}</FormMessage>
+          </FormItem>
+        </FormField>
+        <FormField
+          name="password"
+          v-slot="{ field, errors }"
+        >
+          <FormItem v-auto-animate>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="field"
+                type="password"
+              />
+            </FormControl>
+            <FormDescription>Enter your password</FormDescription>
+            <FormMessage v-if="errors.length">{{ errors[0] }}</FormMessage>
+          </FormItem>
+        </FormField>
         <div class="flex items-center justify-between">
-          <div class="text-sm">
-            <NuxtLink
-              to="/forgot-password"
-              class="text-primary-600 hover:text-primary-500"
-            >
-              Forgot your password?
-            </NuxtLink>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <Button
-            class="bg-cyan-500 hover:bg-cyan-600 py-2 px-4 rounded-md text-white"
-            type="submit"
-            fullWidth
-            :disabled="authStore.loading"
-          >
-            Sign in
-          </Button>
-          <ThirdPartyAuth />
+          <Button @click="handleLogin">Login</Button>
         </div>
       </form>
     </div>
@@ -66,31 +58,46 @@
 </template>
 
 <script setup lang="ts">
-import Button from '~/components/ui/Button.vue'
-import Input from '~/components/ui/Input.vue'
-const authStore = useAuthStore()
-const form = reactive({
-  email: '',
-  password: ''
-})
-const errors = reactive({
-  email: '',
-  password: ''
+import Button from '~/components/ui/button/Button.vue'
+import Input from '~/components/ui/input/Input.vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form'
+import { ZLogin } from '~/schemas/ZAuth'
+import { useToast } from '~/components/ui/toast'
+import { useRouter } from '#app'
+
+const router = useRouter()
+const { toast } = useToast()
+const { login, loading } = useAuthStore()
+const formSchema = toTypedSchema(ZLogin)
+const { handleSubmit } = useForm({
+  validationSchema: formSchema
 })
 
-const handleSubmit = async () => {
-  errors.email = ''
-  errors.password = ''
-
+const handleLogin = handleSubmit(async (values) => {
   try {
-    await authStore.login(form.email, form.password)
-  } catch (error: any) {
-    if (error.message.includes('email')) {
-      errors.email = error.message
-    } else if (error.message.includes('password')) {
-      errors.password = error.message
+    const loginResponse = await login(values.email, values.password)
+    if (loginResponse.status === 200) {
+      toast({
+        title: 'Login successful.',
+        type: 'background'
+      })
+      router.push('/dashboard')
     }
+  } catch (error: any) {
+    toast({
+      title: 'Login failed.',
+      type: 'background'
+    })
   }
-}
+})
 </script>
 

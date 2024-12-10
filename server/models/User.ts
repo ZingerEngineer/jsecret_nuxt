@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string
   password: string
   name: string
+  role: string
   avatar?: string
   provider?: string
   providerId?: string
@@ -31,6 +32,11 @@ const userSchema = new mongoose.Schema<IUser>(
     name: {
       type: String,
       required: true
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user'
     },
     avatar: String,
     provider: {

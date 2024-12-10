@@ -1,12 +1,9 @@
 import { defineStore } from 'pinia'
 import { z } from 'zod'
+import { ZEnvVariable } from '~/schemas/ZEnvVariable'
+import type { IEnvVariable } from '~/server/models/EnvVariable'
 
-const envVariableSchema = z.object({
-  key: z.string().min(1),
-  value: z.string().min(1),
-  projectId: z.string().optional(),
-  teamId: z.string().optional()
-})
+const envVariableSchema = ZEnvVariable
 
 export const useEnvVariablesStore = defineStore('envVariables', {
   state: () => ({
@@ -19,15 +16,21 @@ export const useEnvVariablesStore = defineStore('envVariables', {
     async createVariable(data: z.infer<typeof envVariableSchema>) {
       this.loading = true
       this.error = null
-      
+
       try {
         const validData = envVariableSchema.parse(data)
-        const response = await $fetch('/api/env-variables', {
-          method: 'POST',
-          body: validData
-        })
-        this.variables.unshift(response)
-        return response
+        const createResponse = await $fetch<IEnvVariable>(
+          '/api/env-variables',
+          {
+            method: 'POST',
+            body: validData
+          }
+        )
+
+        return {
+          status: 200,
+          variable: createResponse
+        }
       } catch (error: any) {
         if (error instanceof z.ZodError) {
           this.error = error.errors[0].message
@@ -43,7 +46,7 @@ export const useEnvVariablesStore = defineStore('envVariables', {
     async fetchRecentVariables() {
       this.loading = true
       this.error = null
-      
+
       try {
         const response = await $fetch('/api/env-variables/recent')
         this.variables = response
@@ -57,3 +60,4 @@ export const useEnvVariablesStore = defineStore('envVariables', {
     }
   }
 })
+
